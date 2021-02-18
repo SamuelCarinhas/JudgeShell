@@ -25,50 +25,53 @@ fileName=${codeFile%.*}
 fileCreated=""
 
 command=""
+language=""
 
+echo -e "${LIGHT_CYAN}[⏲️ ] ${ORANGE}Compiling $codeFile..."
 if [[ $codeFile == *.cpp ]]
 then
 	g++ $codeFile
 	command="./a.out "
 	fileCreated="a.out"
+	language="C++"
 elif [[ $codeFile == *.c ]]
 then
 	gcc $codeFile
 	command="./a.out "
 	fileCreated="a.out"
+	language="C"
 elif [[ $codeFile == *.py ]]
 then
 	command="python3 $codeFile "
+	language="Python"
 elif [[ $codeFile == *.java ]]
 then
 	javac $codeFile
 	command="java $fileName"
 	fileCreated="$fileName.class"
+	language="Java"
 else
 	echo "Your file extension is not supported."
 fi
 
-echo -e "${LIGHT_CYAN}[⏲️ ] ${ORANGE}Compiling $codeFile..."
-sleep 0.5
 echo -e "${LIGHT_CYAN}[✅] ${LIGHT_GREEN}$codeFile Compiled.${CYAN}"
 sleep 2
 
 clear
 
-
 cat <<"EOF"
-       _           _            
-      | |         | |           
-      | |_   _  __| | __ _  ___ 
+       _           _
+      | |         | |
+      | |_   _  __| | __ _  ___
   _   | | | | |/ _` |/ _` |/ _ \
  | |__| | |_| | (_| | (_| |  __/
   \____/ \__,_|\__,_|\__, |\___|
-                      __/ |     
-                     |___/      
+                      __/ |
+                     |___/
                                                 (   ) )
-                                                 ) ( (    
+                                                 ) ( (
    __          ____                    __      _______)_
-  / /  __ __  / __/__ ___ _  __ _____ / /   '-|---------|  
+  / /  __ __  / __/__ ___ _  __ _____ / /   '-|---------|
  / _ \/ // / _\ \/ _ `/  ' \/ // / -_) /   ( C|/\/\/\/\/|
 /_.__/\_, / /___/\_,_/_/_/_/\_,_/\__/_/     '-./\/\/\/\/|
      /___/                                    '_________'
@@ -79,8 +82,11 @@ EOF
 i=0
 for file in `ls ./dataset/*.in`
 do
+	i=$((i+1))
 	start=`date +%s%N`
-	$command < $file > sol.out
+	result="${ORANGE}[⊗] Time Limit Exceeded"
+	prefix="${LIGHT_CYAN}[${YELLOW}$i${LIGHT_CYAN}] ${NO_COLOR}Running test case: ${ORANGE}${file#./dataset/}\t ${LIGHT_RED}$language ${DARK_GRAY}|"
+	timeout $2 $command < $file > sol.out && {
 	end=`date +%s%N`
 	elapsed=$((end-start))
 	conversion=1000000000
@@ -91,13 +97,12 @@ do
 	outputFile="${outputFile/.in/$second}"
 	result="${LIGHT_GREEN}[✓] Accepted"
 	cmp --silent $outputFile sol.out || result="${LIGHT_RED}[✗] Wrong Answer"
-	i=$((i+1))
-	echo -e "${LIGHT_CYAN}[${YELLOW}$i${LIGHT_CYAN}] ${NO_COLOR}Running test case: ${ORANGE}${file#./dataset/} ${DARK_GRAY}| $result ${NO_COLOR}[${runtime}s]"
+	echo -e "$prefix $result ${NO_COLOR}[${runtime}s]"
 	cmp --silent $outputFile sol.out
 	t=$?
 	if [[ $t == 1 ]]
 	then
-		if [[ $2 == "-debug" ]]
+		if [[ $3 == "-debug" ]]
 		then
 			echo -e "${LIGHT_GRAY}Expected Output:"
 			cat $outputFile
@@ -106,6 +111,7 @@ do
 			cat sol.out
 		fi
 	fi
+	} || echo -e "$prefix $result ${NO_COLOR}[$2s]"
 done
 
 
